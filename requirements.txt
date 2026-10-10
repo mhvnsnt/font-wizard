@@ -1,0 +1,21 @@
+# Font Wizard — free/open-source font foundry stack
+# Install: pip install -r requirements.txt
+
+# Core font building
+fonttools>=4.50          # read/write/merge TTF-OTF-WOFF-WOFF2, subsetting
+pillow>=10.0             # glyph raster work, PNG export, specimen rendering
+numpy>=1.24              # array ops for glyph cleanup/recolor
+
+# Vectorization (bitmap -> outline)
+pypotrace>=0.2           # Python bindings for potrace (needs libpotrace installed)
+
+# WOFF2 compression
+brotli>=1.1              # woff2 compress/decompress
+
+# Free font API federation
+requests>=2.31           # Google Fonts API, Fontsource CDN, cdnfonts
+
+# Optional but recommended (documented in docs/STACKS.md):
+# - fontforge (system package): full font editor + Python scripting
+# - gftools (pip): Google Fonts toolchain (qa, fix, push pipeline)
+# - nanoemoji (pip): color (COLRv0/COLRv1, CBDT, sbix) emoji font builder
