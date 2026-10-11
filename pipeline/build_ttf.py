@@ -14,7 +14,7 @@ Usage:
 import argparse, json, os, re
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.svgPathPen import SVGPathPen
-from fontTools.pens.tuPen import TTGlyphPen
+from fontTools.pens.ttGlyphPen import TTGlyphPen
 
 
 def svg_to_glyph(svg_text: str, units: int, advance: int):

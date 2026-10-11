@@ -1,0 +1,110 @@
+[
+ {
+  "char": "M",
+  "codepoint": "U+004D",
+  "file": "U+004D.png",
+  "size": [
+   98,
+   160
+  ]
+ },
+ {
+  "char": "A",
+  "codepoint": "U+0041",
+  "file": "U+0041.png",
+  "size": [
+   71,
+   160
+  ]
+ },
+ {
+  "char": "G",
+  "codepoint": "U+0047",
+  "file": "U+0047.png",
+  "size": [
+   130,
+   160
+  ]
+ },
+ {
+  "char": "N",
+  "codepoint": "U+004E",
+  "file": "U+004E.png",
+  "size": [
+   105,
+   160
+  ]
+ },
+ {
+  "char": "O",
+  "codepoint": "U+004F",
+  "file": "U+004F.png",
+  "size": [
+   125,
+   160
+  ]
+ },
+ {
+  "char": "L",
+  "codepoint": "U+004C",
+  "file": "U+004C.png",
+  "size": [
+   90,
+   112
+  ]
+ },
+ {
+  "char": "I",
+  "codepoint": "U+0049",
+  "file": "U+0049.png",
+  "size": [
+   53,
+   64
+  ]
+ },
+ {
+  "char": "S",
+  "codepoint": "U+0053",
+  "file": "U+0053.png",
+  "size": [
+   96,
+   133
+  ]
+ },
+ {
+  "char": "Q",
+  "codepoint": "U+0051",
+  "file": "U+0051.png",
+  "size": [
+   145,
+   137
+  ]
+ },
+ {
+  "char": "U",
+  "codepoint": "U+0055",
+  "file": "U+0055.png",
+  "size": [
+   67,
+   114
+  ]
+ },
+ {
+  "char": "R",
+  "codepoint": "U+0052",
+  "file": "U+0052.png",
+  "size": [
+   124,
+   152
+  ]
+ },
+ {
+  "char": "E",
+  "codepoint": "U+0045",
+  "file": "U+0045.png",
+  "size": [
+   34,
+   26
+  ]
+ }
+]
