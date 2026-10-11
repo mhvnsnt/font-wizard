@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""fetch — pull anything back from cold storage to local disk.
+
+Usage:
+  fetch <name>            restore item by manifest name
+  fetch --list            show everything in cold storage
+  fetch --search <term>   find items by keyword
+"""
+import json, os, sys, subprocess
+
+MANIFEST = os.path.expanduser("~/workspace/agent-ops/STORAGE-MANIFEST.json")
+WORKSPACE = os.path.expanduser("~/workspace")
+
+def load_manifest():
+    if not os.path.exists(MANIFEST):
+        print(f"No manifest yet at {MANIFEST}")
+        sys.exit(1)
+    return json.load(open(MANIFEST))
+
+def drive_download(file_id, dest):
+    """Download from Google Drive using hatch_gws_cli."""
+    os.makedirs(os.path.dirname(dest) or ".", exist_ok=True)
+    import json as js
+    r = subprocess.run(
+        ["hatch_gws_cli", "drive", "files", "get",
+         "--params", js.dumps({"fileId": file_id, "alt": "media"}),
+         "-o", dest],
+        capture_output=True, text=True, timeout=600)
+    return r.returncode == 0 and os.path.exists(dest)
+
+def cmd_list(m):
+    items = m.get("items", {})
+    if not items:
+        print("Manifest is empty.")
+        return
+    print(f"{'NAME':<40} {'TYPE':<8} {'SIZE':<10} LOCATION")
+    for name, info in sorted(items.items()):
+        loc = info.get("drive_id") or info.get("repo") or "?"
+        print(f"{name:<40} {info.get('type','?'):<8} {info.get('size','?'):<10} {loc}")
+
+def cmd_search(m, term):
+    term = term.lower()
+    found = {n: i for n, i in m.get("items", {}).items()
+             if term in n.lower() or term in i.get("description", "").lower()}
+    if not found:
+        print(f"Nothing matching '{term}'.")
+        return
+    for name, info in sorted(found.items()):
+        print(f"{name} [{info.get('type')}] — {info.get('description','')}")
+
+def cmd_fetch(m, name):
+    items = m.get("items", {})
+    if name not in items:
+        print(f"'{name}' not in manifest. Try: fetch --search {name}")
+        sys.exit(1)
+    info = items[name]
+    dest = os.path.join(WORKSPACE, info["restore_path"])
+    if os.path.exists(dest):
+        print(f"Already exists at {dest}")
+        return
+    print(f"Fetching '{name}' ({info.get('size','?')}) from {info['type']}...")
+    if info["type"] == "drive":
+        # stage in workspace, NOT /tmp (512M tmpfs)
+        stage_dir = os.path.expanduser("~/workspace/agent-ops/.fetch-staging")
+        os.makedirs(stage_dir, exist_ok=True)
+        if info.get("chunked"):
+            if info.get("drive_ids"):
+                tmpdir = os.path.join(stage_dir, "fetch_" + name.replace("/", "_"))
+            else:
+                tmpdir = os.path.join(stage_dir, "fetch_" + name.replace("/", "_"))
+            os.makedirs(tmpdir, exist_ok=True)
+            for i, fid in enumerate(info["drive_ids"]):
+                part = os.path.join(tmpdir, f"part_{i:03d}")
+                print(f"  chunk {i+1}/{len(info['drive_ids'])}...")
+                if not drive_download(fid, part):
+                    print(f"  FAILED downloading chunk {i+1}")
+                    sys.exit(1)
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            with open(dest, "wb") as out:
+                for i in range(len(info["drive_ids"])):
+                    with open(os.path.join(tmpdir, f"part_{i:03d}"), "rb") as pf:
+                        out.write(pf.read())
+            import shutil
+            shutil.rmtree(tmpdir)
+        else:
+            if not drive_download(info["drive_id"], dest):
+                print("Download failed.")
+                sys.exit(1)
+    elif info["type"] == "github":
+        print(f"GitHub items: clone {info['repo']}")
+        print(f"  git clone {info['repo']} {dest}")
+        sys.exit(0)
+    else:
+        print(f"Unknown type: {info['type']}")
+        sys.exit(1)
+    # verify size if recorded
+    if info.get("bytes"):
+        actual = os.path.getsize(dest)
+        if actual == info["bytes"]:
+            print(f"Done. Verified {actual} bytes at {dest}")
+        else:
+            print(f"WARNING: size mismatch (expected {info['bytes']}, got {actual})")
+    else:
+        print(f"Done at {dest}")
+
+def main():
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help"):
+        print(__doc__)
+        return
+    m = load_manifest()
+    if args[0] == "--list":
+        cmd_list(m)
+    elif args[0] == "--search" and len(args) > 1:
+        cmd_search(m, args[1])
+    else:
+        cmd_fetch(m, args[0])
+
+if __name__ == "__main__":
+    main()
