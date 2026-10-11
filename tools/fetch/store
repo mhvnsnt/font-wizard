@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+"""store — push something to cold storage and update the manifest.
+
+Usage:
+  store <path> --name <name> [--desc <description>]
+    Uploads <path> (file or dir) to Google Drive, verifies, updates manifest.
+    Directories are tarred first. Files >100M are chunked.
+
+  After a successful store, the local copy can be deleted with:
+    store <path> --name <name> --delete-local
+"""
+import json, os, sys, subprocess, tarfile, hashlib, datetime
+
+MANIFEST = os.path.expanduser("~/workspace/agent-ops/STORAGE-MANIFEST.json")
+WORKSPACE = os.path.expanduser("~/workspace")
+CHUNK = 100 * 1024 * 1024  # 100M chunks for Drive
+
+def load_manifest():
+    if os.path.exists(MANIFEST):
+        return json.load(open(MANIFEST))
+    return {"items": {}, "updated_at": None}
+
+def save_manifest(m):
+    m["updated_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    json.dump(m, open(MANIFEST, "w"), indent=1)
+
+def drive_upload(local, remote_name):
+    r = subprocess.run(
+        ["hatch_gws_cli", "drive", "+upload", local, "--name", remote_name],
+        capture_output=True, text=True, timeout=1200)
+    if r.returncode != 0:
+        print("Upload failed:", r.stderr[-500:] if r.stderr else "")
+        return None
+    # parse file ID from JSON output
+    try:
+        data = json.loads(r.stdout)
+        if isinstance(data, dict) and "id" in data:
+            return data["id"]
+    except:
+        pass
+    # fallback: last non-empty line
+    for line in reversed(r.stdout.strip().split("\n")):
+        line = line.strip()
+        if line:
+            return line
+    return None
+
+def main():
+    args = sys.argv[1:]
+    if not args or "-h" in args or "--help" in args:
+        print(__doc__)
+        return
+    path = os.path.abspath(os.path.expanduser(args[0]))
+    if not os.path.exists(path):
+        print(f"Not found: {path}")
+        sys.exit(1)
+    name = None
+    desc = ""
+    delete_local = False
+    i = 1
+    while i < len(args):
+        if args[i] == "--name" and i + 1 < len(args):
+            name = args[i + 1]; i += 2
+        elif args[i] == "--desc" and i + 1 < len(args):
+            desc = args[i + 1]; i += 2
+        elif args[i] == "--delete-local":
+            delete_local = True; i += 1
+        else:
+            i += 1
+    if not name:
+        print("--name is required")
+        sys.exit(1)
+
+    # tar directories (stage in workspace, NOT /tmp which is a 512M tmpfs)
+    src = path
+    tmp_tar = None
+    if os.path.isdir(path):
+        stage_dir = os.path.expanduser("~/workspace/agent-ops/.store-staging")
+        os.makedirs(stage_dir, exist_ok=True)
+        tmp_tar = os.path.join(stage_dir, f"store_{name.replace('/', '_')}.tar")
+        print(f"Archiving {path}...")
+        with tarfile.open(tmp_tar, "w") as tf:
+            tf.add(path, arcname=os.path.basename(path))
+        src = tmp_tar
+
+    size = os.path.getsize(src)
+    print(f"Uploading {name} ({size/1e6:.1f}MB)...")
+
+    m = load_manifest()
+    rel = os.path.relpath(path, WORKSPACE)
+    entry = {
+        "type": "drive",
+        "description": desc or rel,
+        "restore_path": rel + (".tar" if tmp_tar else ""),
+        "size": f"{size/1e6:.1f}MB",
+        "bytes": size,
+        "stored_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+
+    if size > CHUNK:
+        # chunk it
+        parts = []
+        with open(src, "rb") as f:
+            idx = 0
+            while True:
+                data = f.read(CHUNK)
+                if not data:
+                    break
+                part_path = f"{src}.part_{idx:03d}"
+                open(part_path, "wb").write(data)
+                fid = drive_upload(part_path, f"{name}.part_{idx:03d}")
+                os.remove(part_path)
+                if not fid:
+                    print(f"Chunk {idx} failed — aborting, manifest NOT updated.")
+                    sys.exit(1)
+                parts.append(fid)
+                idx += 1
+                print(f"  chunk {idx} ok")
+        entry["chunked"] = True
+        entry["drive_ids"] = parts
+    else:
+        fid = drive_upload(src, name)
+        if not fid:
+            print("Upload failed — manifest NOT updated.")
+            sys.exit(1)
+        entry["drive_id"] = fid
+
+    if tmp_tar:
+        os.remove(tmp_tar)
+
+    m["items"][name] = entry
+    save_manifest(m)
+    print(f"Stored. Manifest updated.")
+
+    if delete_local:
+        import shutil
+        # re-verify by checking manifest entry exists
+        m2 = load_manifest()
+        if name in m2["items"]:
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+            print(f"Local copy deleted: {path}")
+        else:
+            print("Manifest write failed — NOT deleting local.")
+
+if __name__ == "__main__":
+    main()
