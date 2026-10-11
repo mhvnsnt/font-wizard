@@ -1,0 +1,112 @@
+[
+ {
+  "char": "M",
+  "codepoint": "U+004D",
+  "file": "U+004D.png",
+  "size": [
+   94,
+   140
+  ],
+  "svg": "U+004D.svg"
+ },
+ {
+  "char": "A",
+  "codepoint": "U+0041",
+  "file": "U+0041.png",
+  "size": [
+   110,
+   133
+  ],
+  "svg": "U+0041.svg"
+ },
+ {
+  "char": "G",
+  "codepoint": "U+0047",
+  "file": "U+0047.png",
+  "size": [
+   130,
+   133
+  ],
+  "svg": "U+0047.svg"
+ },
+ {
+  "char": "N",
+  "codepoint": "U+004E",
+  "file": "U+004E.png",
+  "size": [
+   105,
+   135
+  ],
+  "svg": "U+004E.svg"
+ },
+ {
+  "char": "O",
+  "codepoint": "U+004F",
+  "file": "U+004F.png",
+  "size": [
+   95,
+   136
+  ],
+  "svg": "U+004F.svg"
+ },
+ {
+  "char": "L",
+  "codepoint": "U+004C",
+  "file": "U+004C.png",
+  "size": [
+   67,
+   107
+  ],
+  "svg": "U+004C.svg"
+ },
+ {
+  "char": "I",
+  "codepoint": "U+0049",
+  "file": "U+0049.png",
+  "size": [
+   76,
+   147
+  ],
+  "svg": "U+0049.svg"
+ },
+ {
+  "char": "S",
+  "codepoint": "U+0053",
+  "file": "U+0053.png",
+  "size": [
+   81,
+   128
+  ],
+  "svg": "U+0053.svg"
+ },
+ {
+  "char": "Q",
+  "codepoint": "U+0051",
+  "file": "U+0051.png",
+  "size": [
+   145,
+   138
+  ],
+  "svg": "U+0051.svg"
+ },
+ {
+  "char": "U",
+  "codepoint": "U+0055",
+  "file": "U+0055.png",
+  "size": [
+   130,
+   151
+  ],
+  "svg": "U+0055.svg"
+ },
+ {
+  "char": "R",
+  "codepoint": "U+0052",
+  "file": "U+0052.png",
+  "size": [
+   81,
+   102
+  ],
+  "svg": "U+0052.svg"
+ }
+]
