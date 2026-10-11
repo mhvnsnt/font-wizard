@@ -98,24 +98,47 @@ def main():
     }
 
     if size > CHUNK:
-        # chunk it
+        # chunk it (resumable: progress saved to staging dir)
+        progress_file = os.path.join(os.path.dirname(src), f".{name}.progress.json")
         parts = []
+        start_idx = 0
+        if os.path.exists(progress_file):
+            try:
+                prog = json.load(open(progress_file))
+                parts = prog.get("drive_ids", [])
+                start_idx = len(parts)
+                print(f"Resuming from chunk {start_idx} ({len(parts)} already uploaded)")
+            except:
+                pass
         with open(src, "rb") as f:
-            idx = 0
+            # skip to start_idx
+            f.seek(start_idx * CHUNK)
+            idx = start_idx
             while True:
                 data = f.read(CHUNK)
                 if not data:
                     break
                 part_path = f"{src}.part_{idx:03d}"
                 open(part_path, "wb").write(data)
-                fid = drive_upload(part_path, f"{name}.part_{idx:03d}")
+                fid = None
+                for attempt in range(3):
+                    fid = drive_upload(part_path, f"{name}.part_{idx:03d}")
+                    if fid:
+                        break
+                    print(f"  chunk {idx} attempt {attempt+1} failed, retrying...")
+                    import time; time.sleep(10)
                 os.remove(part_path)
                 if not fid:
-                    print(f"Chunk {idx} failed — aborting, manifest NOT updated.")
+                    # save progress for resume
+                    json.dump({"drive_ids": parts}, open(progress_file, "w"))
+                    print(f"Chunk {idx} failed after 3 attempts — progress saved, rerun to resume.")
                     sys.exit(1)
                 parts.append(fid)
+                json.dump({"drive_ids": parts}, open(progress_file, "w"))
                 idx += 1
                 print(f"  chunk {idx} ok")
+        if os.path.exists(progress_file):
+            os.remove(progress_file)
         entry["chunked"] = True
         entry["drive_ids"] = parts
     else:
