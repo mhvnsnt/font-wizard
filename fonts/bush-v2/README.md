@@ -26,6 +26,6 @@ genuinely crude, on purpose.
 - **Design apps:** drop the TTF in, or use the PNG pack directly
 
 ## License
-Part of the Font Wizard foundry (mhvnsnt/font-wizard, MIT). The font files
-themselves are released for personal and commercial use — same terms as the
-other Font Wizard packs.
+Free for personal and commercial use in your own projects. Do not resell or
+redistribute the font files themselves — point people at the Font Wizard repo
+(https://github.com/mhvnsnt/font-wizard) or the itch.io page.

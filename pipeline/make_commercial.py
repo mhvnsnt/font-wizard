@@ -88,7 +88,7 @@ def main():
     for _ in range(1 * FPS):
         img = Image.new('RGB', (W, H), (255, 255, 255))
         d = ImageDraw.Draw(img)
-        d.text((center_x(d, cta, margin_font), MARGIN_Y), cta,
+        d.text((center_x(d, cta, margin_font), vcenter_y(d, cta, margin_font)), cta,
                font=margin_font, fill=(0, 0, 0))
         save(img)
 
@@ -96,7 +96,7 @@ def main():
     for _ in range(1 * FPS):
         img = Image.new('RGB', (W, H), (255, 255, 255))
         d = ImageDraw.Draw(img)
-        d.text((center_x(d, tag, margin_font), MARGIN_Y), tag,
+        d.text((center_x(d, tag, margin_font), vcenter_y(d, tag, margin_font)), tag,
                font=margin_font, fill=(0, 0, 0))
         save(img)
 
@@ -104,7 +104,7 @@ def main():
     for i in range(2 * FPS):
         img = Image.new('RGB', (W, H), (0, 0, 0))
         d = ImageDraw.Draw(img)
-        d.text((center_x(d, cta, margin_font), MARGIN_Y), cta,
+        d.text((center_x(d, cta, margin_font), vcenter_y(d, cta, margin_font)), cta,
                font=margin_font, fill=(255, 255, 255))
         save(wavy(img, i / FPS))
 

@@ -58,3 +58,10 @@ See `docs/CONTRIBUTING.md`. Branch → PR → merge; no open PRs.
 ## License
 MIT — see LICENSE. (Individual font families may carry their own terms;
 see each family's README.)
+
+## Animation / Video Pipeline
+Font commercials are video production — they follow the shared TRIPPEDD animation pipeline:
+- Playbook: `~/workspace/animation-techniques/ANIMATION-PLAYBOOK.md` (industry standards, anti-AI-slop techniques)
+- Per-shot checklist: `~/workspace/animation-techniques/PIPELINE-CHECKLIST.md` (9-step QC)
+- Free tools: `~/workspace/animation-techniques/tools/TOOLKIT.md`
+Reference the hub — do not duplicate its content here.
